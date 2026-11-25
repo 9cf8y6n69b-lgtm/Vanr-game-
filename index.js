@@ -30,7 +30,7 @@ try {
   if (typeof bankSystem.handleBankInteraction === 'function') handleBankInteraction = bankSystem.handleBankInteraction;
   if (bankSystem.bankCommands) client.bankCommands = bankSystem.bankCommands;
   BankUser = require('./bank/models/BankUser');
-  console.log('✅ Bank system loaded successfully');
+  console.log('✅ Bank system loaded successfully (' + (bankSystem.bankCommands?.size || 0) + ' commands)');
 } catch (error) {
   console.error('❌ Failed to load Bank System:', error);
 }
@@ -82,6 +82,8 @@ client.on('clientReady', async () => {
     dashboard.init({ client, isAdmin: isAdminMember, isOwner, applyStatus });
     dashboard.registerCommands(client).catch((e) => console.error('slash register:', e.message));
   }
+  // نحذف أوامر السلاش العامة القديمة (مثل /daily) اللي ما لها معالج في هذا الكود
+  client.application?.commands.set([]).catch((e) => console.error('clear global commands:', e.message));
   applyStatus();
   if (backup && BankUser) {
     await backup.autoRestore(client);
@@ -93,8 +95,25 @@ client.on('clientReady', async () => {
 });
 client.on('guildCreate', () => { if (dashboard) dashboard.registerCommands(client).catch(() => {}); });
 
+let warnedEmpty = false;
 client.on('messageCreate', async (message) => {
   if (message.author.bot || !message.guild) return;
+  if (!message.content && !message.attachments.size && !message.embeds.length && !warnedEmpty) {
+    warnedEmpty = true;
+    console.warn('⚠️ وصلتني رسالة بدون نص: فعّل MESSAGE CONTENT INTENT من Developer Portal ← Bot ثم أعد التشغيل.');
+  }
+
+  // ---- فحص سريع: يشتغل بدون بريفكس وبأي روم ----
+  if (['فحص', 'ping'].includes(message.content.trim().toLowerCase())) {
+    const cfg = settingsUtil?.getSettings() || {};
+    const chans = (cfg.bankChannels || []).map(String).filter((x) => x.trim());
+    return message.reply([
+      '✅ البوت يشوف رسائلك.',
+      `نظام البنك: ${client.bankCommands ? `محمّل (${client.bankCommands.size} أمر/اسم)` : '❌ لم يتحمّل — شوف سجل التشغيل'}`,
+      `البريفكس: ${cfg.prefix ? `\`${cfg.prefix}\`` : 'بدون'}`,
+      `الروم الحالي: ${chans.length ? (chans.includes(message.channel.id) ? 'مسموح' : '❌ غير مسموح (محدد رومات للبنك)') : 'مسموح'}`,
+    ].join('\n')).catch((e) => console.error('فحص reply failed:', e.message));
+  }
 
   // البريفكس (فاضي = بدون)
   const prefix = settingsUtil?.getSettings().prefix || '';
@@ -129,6 +148,19 @@ client.on('messageCreate', async (message) => {
     } catch (e) { return message.reply(`❌ فشل الاسترجاع: ${e.message}`); }
   }
 
+  // صلاحيات البوت في الروم: ردود البنك بطاقات صور/embeds، وبدون الصلاحيات ما يوصل أي رد
+  if (client.bankCommands?.has(commandName)) {
+    const perms = message.channel.permissionsFor?.(client.user);
+    if (perms) {
+      const need = { SendMessages: 'إرسال الرسائل', EmbedLinks: 'تضمين الروابط', AttachFiles: 'إرفاق الملفات', ReadMessageHistory: 'قراءة سجل الرسائل' };
+      const missing = Object.entries(need).filter(([k]) => !perms.has(PermissionFlagsBits[k])).map(([, v]) => v);
+      if (missing.length) {
+        console.warn(`⚠️ ينقص البوت صلاحيات في #${message.channel.name}: ${missing.join('، ')}`);
+        if (perms.has(PermissionFlagsBits.SendMessages)) return message.channel.send(`❌ ينقص البوت صلاحيات في هذا الروم: **${missing.join('، ')}**`).catch(() => {});
+        return;
+      }
+    }
+  }
   if (typeof handleBankCommand === 'function') {
     try { await handleBankCommand(message, commandName, args); }
     catch (error) { console.error('[Bank Command Error]:', error); }
