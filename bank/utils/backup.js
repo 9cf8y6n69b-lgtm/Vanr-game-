@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { AttachmentBuilder } = require('discord.js');
 const BankUser = require('../models/BankUser');
-const { getSettings } = require('./settings');
+const { getSettings, readConfig, writeConfig } = require('./settings');
 
 const ROOT = path.join(__dirname, '..', '..');
 const TEXT_FILES = ['bank/config/bank-config.json', 'bank/config/cars-config.json', 'admin_settings.json',
@@ -18,20 +18,61 @@ function buildBackup() {
   for (const f of BIN_FILES) { try { binary[f] = fs.readFileSync(path.join(ROOT, f)).toString('base64'); } catch {} }
   return JSON.stringify({ version: 2, createdAt: new Date().toISOString(), users: BankUser.__dump(), files, binary });
 }
-function applyBackup(text) {
-  const data = JSON.parse(text);
-  if (!data || !Array.isArray(data.users)) throw new Error('ملف غير صالح');
-  const n = BankUser.__load(data.users);
-  for (const f of TEXT_FILES) {
-    if (data.files && typeof data.files[f] === 'string') {
-      try { JSON.parse(data.files[f]); fs.mkdirSync(path.dirname(path.join(ROOT, f)), { recursive: true }); fs.writeFileSync(path.join(ROOT, f), data.files[f]); } catch {}
+const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
+// يكمّل أي مفتاح ناقص في النسخة القديمة من الإعدادات الحالية (عشان ما تضيع الأراضي/الخبرة/القروض...)
+function fillDefaults(target, def) {
+  for (const k of Object.keys(def)) {
+    if (target[k] === undefined) target[k] = JSON.parse(JSON.stringify(def[k]));
+    else if (isObj(def[k]) && isObj(target[k])) fillDefaults(target[k], def[k]);
+  }
+  return target;
+}
+// يقبل أكثر من شكل لملف النسخة
+function extractUsers(data) {
+  const cands = [data, data?.users, data?.accounts, data?.BankUser, data?.bankUsers, data?.data, data?.data?.users];
+  for (const c of cands) {
+    let arr = Array.isArray(c) ? c : (isObj(c) ? Object.values(c) : null);
+    if (arr && arr.length && arr.every((u) => isObj(u))) {
+      arr = arr.filter((u) => u.userId && u.guildId);
+      if (arr.length) return arr;
     }
+  }
+  return Array.isArray(data?.users) ? data.users : null;
+}
+function applyBackup(text) {
+  let data;
+  try { data = JSON.parse(String(text).replace(/^\uFEFF/, '')); } catch { throw new Error('الملف مو نسخة احتياطية صحيحة (JSON تالف)'); }
+  const users = extractUsers(data);
+  if (!users) throw new Error('ما لقيت حسابات داخل الملف — تأكد إنه ملف backup-....json من نفس البوت');
+  const n = BankUser.__load(users);
+  const files = (data && isObj(data.files)) ? data.files : {};
+  const current = readConfig();
+  for (const f of TEXT_FILES) {
+    if (typeof files[f] !== 'string') continue;
+    try {
+      const parsed = JSON.parse(files[f]);
+      let out = parsed;
+      if (f === 'bank/config/bank-config.json') {
+        out = fillDefaults(parsed, current);
+        if (isObj(files['admin_settings.json'] && JSON.parse(files['admin_settings.json']))) {
+          out.adminSettings = { ...JSON.parse(files['admin_settings.json']), ...(out.adminSettings || {}) };
+        }
+      }
+      if (f === 'admin_settings.json') continue; // ملف قديم: ينضم لإعدادات bank-config فوق
+      fs.mkdirSync(path.dirname(path.join(ROOT, f)), { recursive: true });
+      fs.writeFileSync(path.join(ROOT, f), JSON.stringify(out, null, 2));
+    } catch (e) { console.error('restore file failed:', f, e.message); }
+  }
+  // لو النسخة قديمة وفيها admin_settings فقط
+  if (typeof files['bank/config/bank-config.json'] !== 'string' && typeof files['admin_settings.json'] === 'string') {
+    try { const cfg = readConfig(); cfg.adminSettings = { ...JSON.parse(files['admin_settings.json']), ...(cfg.adminSettings || {}) }; writeConfig(cfg); } catch {}
   }
   for (const f of BIN_FILES) {
     if (data.binary && typeof data.binary[f] === 'string') {
       try { fs.mkdirSync(path.dirname(path.join(ROOT, f)), { recursive: true }); fs.writeFileSync(path.join(ROOT, f), Buffer.from(data.binary[f], 'base64')); } catch {}
     }
   }
+  try { require('./helpers').loadMarketPrices?.(); } catch {}
   return n;
 }
 const makeAttachment = () => new AttachmentBuilder(Buffer.from(buildBackup()), { name: `backup-${new Date().toISOString().slice(0, 10)}.json` });
