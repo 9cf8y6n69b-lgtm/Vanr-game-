@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const path = require('path');
 const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
@@ -61,7 +62,7 @@ module.exports = {
       await setCooldown(user, 'luck');
       await user.save();
 
-      const text = `✨ كسبت ${xp} نقطة خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level} ووظيفتك الجديدة **${user.job}**` : '');
+      const text = ''; dmXp(message, xp, user);
       try {
         const buf = await createRewardCard({
           user, discordUser: message.author, guildOrId: message.guild,
