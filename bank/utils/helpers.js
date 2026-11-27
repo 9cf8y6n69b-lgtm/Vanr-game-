@@ -71,6 +71,7 @@ function updateMaterialPrices() {
     sellPrice = Math.round(buyPrice * 0.8);
     currentMarketPrices[material] = { buyPrice, sellPrice };
   }
+  global.marketLastUpdate = Date.now();
   saveMarketPrices();
   console.log('Market prices updated:', currentMarketPrices);
 }
@@ -308,6 +309,7 @@ async function checkLevelUpAndJob(user, config) {
   return leveledUp;
 }
 module.exports = {
+  loadMarketPrices,
   formatMoney,
   parseAmount,
   getUser,
