@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const { AttachmentBuilder } = require('discord.js');
 const { getUser, checkCooldown, setCooldown, formatMoney, formatTime, readConfig, randomInt, checkLevelUpAndJob } = require('../utils/helpers');
@@ -79,7 +80,7 @@ module.exports = {
       await setCooldown(thief, 'rob');
       await thief.save();
 
-      const text = `✨ كسبت ${xp} نقطة خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${thief.level}` : '');
+      const text = ''; dmXp(message, xp, thief);
       try {
         const buf = await createRewardCard({
           user: thief, discordUser: message.author, guildOrId: message.guild,
