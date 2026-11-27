@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const { AttachmentBuilder } = require('discord.js');
 const { getUser, checkCooldown, setCooldown, parseAmount, formatMoney, readConfig, checkLevelUpAndJob } = require('../utils/helpers');
@@ -45,7 +46,7 @@ module.exports = {
       try { gif = await createTradeGif({ discordUser: message.author, up, pct, amount, change }); }
       catch (e) { console.error('trade gif failed:', e); }
 
-      const text = `${up ? '📈 صفقة رابحة' : '📉 صفقة خاسرة'}: **${change >= 0 ? '+' : '-'}${formatMoney(Math.abs(change))}** — رصيدك ${formatMoney(user.balance)}\n✨ كسبت ${xp} نقطة خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level}` : '');
+      const text = `${up ? '📈 صفقة رابحة' : '📉 صفقة خاسرة'}: **${change >= 0 ? '+' : '-'}${formatMoney(Math.abs(change))}** — رصيدك ${formatMoney(user.balance)}`; dmXp(message, xp, user);
       return message.reply(gif ? { content: text, files: [new AttachmentBuilder(gif, { name: 'trade.gif' })] } : text);
     } catch (e) {
       console.error('Error in trade command:', e);
