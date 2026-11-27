@@ -29,6 +29,14 @@ function fit(ctx, text, maxW, size, weight = 'bold') {
   while (s > 12 && ctx.measureText(text).width > maxW) { s -= 1; ctx.font = FONT(weight, s); }
   return s;
 }
+// يصغّر الخط شوي، وإذا النص لسا أطول من العرض يقصّه بـ …
+function clip(ctx, text, maxW, size, weight = 'bold', min = 13) {
+  text = String(text ?? '');
+  let s = size; ctx.font = FONT(weight, s);
+  while (s > min && ctx.measureText(text).width > maxW) { s -= 1; ctx.font = FONT(weight, s); }
+  while (text.length > 1 && ctx.measureText(text + '…').width > maxW && ctx.measureText(text).width > maxW) text = text.slice(0, -1);
+  return text === String(arguments[1] ?? '') ? text : text + '…';
+}
 function tile(ctx, COLORS, x, y, w, h, fill = 'rgba(255,255,255,0.10)', border = null) {
   rr(ctx, x, y, w, h, 22); ctx.fillStyle = fill; ctx.fill();
   ctx.lineWidth = 3; ctx.strokeStyle = border || COLORS.cardBorder || COLORS.line; ctx.stroke();
@@ -120,7 +128,7 @@ async function createGarageImage(allCars, userCars, page, totalPages, discordUse
     ctx.restore();
 
     ctx.textAlign = 'left'; ctx.fillStyle = COLORS.text;
-    fit(ctx, car.name, tw - 125, 17); ctx.fillText(car.name, x + 118, y + 36);
+    ctx.fillText(clip(ctx, car.name, tw - 128, 17), x + 118, y + 36);
     ctx.font = FONT('bold', 16); ctx.fillStyle = color; ctx.fillText(label, x + 118, y + 62);
     ctx.font = FONT('', 15); ctx.fillStyle = COLORS.textMuted;
     ctx.fillText(`سرعة ${car.speed ?? '-'}`, x + 118, y + 86);
@@ -153,14 +161,14 @@ async function createAuctionImage(cars, bids, guildActor, guildId) {
     await drawCar(ctx, car, x + 15, y0 + 14, tw - 30, 120, cfg);
 
     ctx.textAlign = 'center'; ctx.fillStyle = COLORS.text;
-    fit(ctx, car.name, tw - 24, 22); ctx.fillText(car.name, x + tw / 2, y0 + 168);
+    ctx.fillText(clip(ctx, car.name, tw - 24, 22), x + tw / 2, y0 + 168);
     ctx.font = FONT('bold', 18); ctx.fillStyle = color; ctx.fillText(label, x + tw / 2, y0 + 196);
     ctx.font = FONT('', 17); ctx.fillStyle = COLORS.textMuted; ctx.fillText(`أقل سعر ${formatMoney(car.leastPrice || 0)}`, x + tw / 2, y0 + 226);
 
     if (bid) {
       ctx.font = FONT('bold', 26); ctx.fillStyle = COLORS.green; ctx.fillText(formatMoney(bid.amount), x + tw / 2, y0 + 268);
       ctx.font = FONT('', 16); ctx.fillStyle = COLORS.textMuted;
-      fit(ctx, bid.username || '', tw - 30, 16, ''); ctx.fillText(bid.username || '', x + tw / 2, y0 + 300);
+      ctx.fillText(clip(ctx, bid.username || '', tw - 30, 16, ''), x + tw / 2, y0 + 300);
     } else { ctx.font = FONT('', 18); ctx.fillStyle = COLORS.textMuted; ctx.fillText('ما فيه مزايدات', x + tw / 2, y0 + 275); }
   }
   if (!list.length) { ctx.textAlign = 'center'; ctx.fillStyle = COLORS.textMuted; ctx.font = FONT('bold', 28); ctx.fillText('لا يوجد مزاد حالياً', 450, 280); }
@@ -187,12 +195,11 @@ async function createHarrajImage(listings, allCars, page, totalPages, guildId) {
 
     ctx.textAlign = 'left'; ctx.fillStyle = COLORS.text;
     const name = l.carName || car.name || l.carId;
-    fit(ctx, name, tw - 190, 20); ctx.fillText(name, x + 172, y + 38);
+    ctx.fillText(clip(ctx, name, tw - 190, 20), x + 172, y + 38);
     ctx.font = FONT('bold', 16); ctx.fillStyle = color; ctx.fillText(label, x + 172, y + 64);
     ctx.font = FONT('bold', 24); ctx.fillStyle = COLORS.green; ctx.fillText(formatMoney(l.price || 0), x + 172, y + 98);
     ctx.font = FONT('', 15); ctx.fillStyle = COLORS.textMuted;
-    fit(ctx, `البائع: ${l.sellerName || '-'}`, tw - 190, 15, '');
-    ctx.fillText(`البائع: ${l.sellerName || '-'}`, x + 172, y + 124);
+    ctx.fillText(clip(ctx, `البائع: ${l.sellerName || '-'}`, tw - 190, 15, ''), x + 172, y + 124);
     ctx.textAlign = 'center'; ctx.font = FONT('', 14);
     ctx.fillText(`رقم الإعلان: ${l.listingId}`, x + tw / 2, y + th - 10);
   }
