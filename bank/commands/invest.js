@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const { AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { getUser, parseAmount, formatMoney, readConfig, checkLevelUpAndJob } = require('../utils/helpers');
@@ -44,7 +45,7 @@ module.exports = {
         const xp = randomXp(config, 'invest');
         user.experience += xp;
         const leveledUp = await checkLevelUpAndJob(user, config);
-        note = `✅ تم استثمار **${formatMoney(amount)}** — ✨ ${xp} خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level}` : '');
+        note = `✅ تم استثمار **${formatMoney(amount)}**`; dmXp(message, xp, user);
       }
       await user.save();
 

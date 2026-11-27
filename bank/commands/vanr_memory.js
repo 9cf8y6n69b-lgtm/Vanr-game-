@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 // فواكه: تشوف الأماكن ثم تختفي، وتختار مكان فاكهة واحدة (محاولة وحدة فقط)
 const { AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
@@ -87,7 +88,7 @@ module.exports = {
 
     const buf = await createMemoryCard({ grid: g.grid, mode: 'reveal', ask: g.ask, picked, guild: interaction.guild });
     await interaction.editReply({
-      content: (ok ? `✅ صح! ربحت **${formatMoney(reward)}**` : `❌ غلط! مكان ${NAMES[g.grid[g.ask]]} كان رقم **${g.ask + 1}**`) + `\n✨ ${xp} خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level}` : ''),
+      content: (ok ? `✅ صح! ربحت **${formatMoney(reward)}**` : `❌ غلط! مكان ${NAMES[g.grid[g.ask]]} كان رقم **${g.ask + 1}**`) + (dmXp(message, xp, user) || ''),
       attachments: [], files: [file(buf)], components: rows(gameId, picked, g.ask),
     });
   },

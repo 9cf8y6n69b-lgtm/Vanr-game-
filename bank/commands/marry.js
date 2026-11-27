@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 // Protecting innovation, enabling creation. All rights reserved.
 // Unauthorized access, reproduction, or distribution is strictly forbidden.
@@ -103,8 +104,7 @@ module.exports = {
           await partner.save();
 
           let acceptDescription = `🎉 ${message.author.tag} و ${targetUser.tag} متزوجان الآن!`;
-          acceptDescription += `
-كسب كل منكما ${xpAward} نقطة خبرة.`;
+          dmXp(message, xpAward, user); dmXp(message, xpAward, partner, targetUser);
           if (userLeveledUp) {
             acceptDescription += `
 ${message.author.tag} وصل إلى المستوى ${user.level} وحصل على وظيفة **${user.job}** جديدة!`;

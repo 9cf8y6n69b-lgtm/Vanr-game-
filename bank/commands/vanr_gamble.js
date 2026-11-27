@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const { AttachmentBuilder } = require('discord.js');
 const { getUser, checkCooldown, setCooldown, formatMoney, readConfig, checkLevelUpAndJob } = require('../utils/helpers');
@@ -42,7 +43,7 @@ module.exports = {
       await setCooldown(user, 'gamble');
       await user.save();
 
-      const text = `${state === 'win' ? '🏆 فزت' : state === 'lose' ? '❌ خسرت' : '🤝 تعادل'} ${formatMoney(Math.abs(change))} — رصيدك ${formatMoney(user.balance)}\n✨ كسبت ${xp} نقطة خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level}` : '');
+      const text = `${state === 'win' ? '🏆 فزت' : state === 'lose' ? '❌ خسرت' : '🤝 تعادل'} ${formatMoney(Math.abs(change))} — رصيدك ${formatMoney(user.balance)}`; dmXp(message, xp, user);
       const rnd = () => [pick(FRUITS), pick(FRUITS), pick(FRUITS)];
       const mk = (f, s) => createGambleCard({ discordUser: message.author, fruits: f, state: s, amount, change, guild: message.guild });
       let sent;

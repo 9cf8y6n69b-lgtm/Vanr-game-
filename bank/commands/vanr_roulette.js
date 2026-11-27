@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const { AttachmentBuilder } = require('discord.js');
 const { getUser, checkCooldown, setCooldown, formatMoney, readConfig, checkLevelUpAndJob } = require('../utils/helpers');
@@ -38,7 +39,7 @@ module.exports = {
       await setCooldown(user, 'roulette');
       await user.save();
 
-      const text = `✨ كسبت ${xp} نقطة خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level}` : '');
+      const text = ''; dmXp(message, xp, user);
       const seg = (Math.PI * 2) / MULTS.length;
       const finalRot = -(idx + 0.5) * seg - Math.PI * 4;
       const start = finalRot + Math.PI * 4 + Math.random() * 2;

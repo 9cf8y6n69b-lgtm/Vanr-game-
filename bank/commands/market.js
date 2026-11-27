@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 // Protecting innovation, enabling creation. All rights reserved.
 // Unauthorized access, reproduction, or distribution is strictly forbidden.
@@ -164,7 +165,7 @@ module.exports = {
           await user.save();
           
           let replyMessage = `✅ تم شراء ${amount} من كل المواد بنجاح!\nالتكلفة: ${formatMoney(totalCost)}\nرصيدك: ${formatMoney(user.balance)}`;
-          replyMessage += `\nكسبت ${xpAward} نقطة خبرة.`;
+          dmXp(message, xpAward, user);
           if (leveledUp) {
             replyMessage += `\n🎉 لقد وصلت إلى المستوى ${user.level} وحصلت على وظيفة **${user.job}** جديدة!`;
           }
@@ -187,7 +188,7 @@ module.exports = {
           await user.save();
           
           let replyMessage = `✅ تم بيع جميع موادك بنجاح!\nالربح: ${formatMoney(totalEarned)}\nرصيدك: ${formatMoney(user.balance)}`;
-          replyMessage += `\nكسبت ${xpAward} نقطة خبرة.`;
+          dmXp(message, xpAward, user);
           if (leveledUp) {
             replyMessage += `\n🎉 لقد وصلت إلى المستوى ${user.level} وحصلت على وظيفة **${user.job}** جديدة!`;
           }
@@ -215,7 +216,7 @@ module.exports = {
           await user.save();
           
           let replyMessage = `✅ تم شراء ${amount} ${matDef.emoji} ${matDef.name} بنجاح!\nالتكلفة: ${formatMoney(cost)}\nرصيدك: ${formatMoney(user.balance)}`;
-          replyMessage += `\nكسبت ${xpAward} نقطة خبرة.`;
+          dmXp(message, xpAward, user);
           if (leveledUp) {
             replyMessage += `\n🎉 لقد وصلت إلى المستوى ${user.level} وحصلت على وظيفة **${user.job}** جديدة!`;
           }
@@ -239,7 +240,7 @@ module.exports = {
           await user.save();
           
           let replyMessage = `✅ تم بيع ${amount} ${matDef.emoji} ${matDef.name} بنجاح!\nالربح: ${formatMoney(earned)}\nرصيدك: ${formatMoney(user.balance)}`;
-          replyMessage += `\nكسبت ${xpAward} نقطة خبرة.`;
+          dmXp(message, xpAward, user);
           if (leveledUp) {
             replyMessage += `\n🎉 لقد وصلت إلى المستوى ${user.level} وحصلت على وظيفة **${user.job}** جديدة!`;
           }

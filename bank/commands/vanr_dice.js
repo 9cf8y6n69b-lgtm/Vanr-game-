@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 const { AttachmentBuilder } = require('discord.js');
 const { getUser, checkCooldown, setCooldown, formatMoney, readConfig, checkLevelUpAndJob, randomInt } = require('../utils/helpers');
@@ -39,7 +40,7 @@ module.exports = {
       await setCooldown(user, 'dice');
       await user.save();
 
-      const text = `✨ كسبت ${xp} نقطة خبرة` + (leveledUp ? `\n🎉 وصلت للمستوى ${user.level}` : '');
+      const text = ''; dmXp(message, xp, user);
       try {
         const buf = await createDiceCard({ discordUser: message.author, botUser: message.client.user, userRoll, botRoll, result, amount, guild: message.guild });
         return message.reply({ content: text, files: [new AttachmentBuilder(buf, { name: 'dice.png' })] });

@@ -1,3 +1,4 @@
+const { dmXp } = require('../utils/xp');
 // © 2026 Q3yb - Wick studio.
 // Protecting innovation, enabling creation. All rights reserved.
 // Unauthorized access, reproduction, or distribution is strictly forbidden.
@@ -202,7 +203,7 @@ module.exports = {
         await user.save();
         
         let description = `${isUpgrade ? 'تمت ترقية' : 'تم شراء'} ${landConfig.emoji} **${landConfig.name}** ${isUpgrade ? `إلى المستوى ${level}` : ''} بنجاح!`;
-        description += `\nكسبت ${xpAward} نقطة خبرة.`;
+        dmXp(message, xpAward, user);
         if (leveledUp) {
             description += `\n🎉 لقد وصلت إلى المستوى ${user.level} وحصلت على وظيفة **${user.job}** جديدة!`;
         }
