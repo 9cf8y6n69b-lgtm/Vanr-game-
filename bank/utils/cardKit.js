@@ -39,7 +39,7 @@ async function drawHeader(ctx, COLORS, guildOrId, W) {
 }
 
 /** يرسم الخلفية + الإطار الداخلي + الهيدر ويرجع { canvas, ctx, COLORS, W, H } */
-async function newCard(W, H, guildOrId) {
+async function newCard(W, H, guildOrId, opts = {}) {
   let COLORS = await getActiveColors(guildOrId);
   if (preview.state.current?.colors) COLORS = { ...COLORS, ...preview.state.current.colors };
   const canvas = createCanvas(W, H);
@@ -53,9 +53,11 @@ async function newCard(W, H, guildOrId) {
   const shine = ctx.createLinearGradient(0, 0, W, H);
   shine.addColorStop(0, 'rgba(255,255,255,0.10)'); shine.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = shine; ctx.fill(); ctx.restore();
-  ctx.beginPath(); ctx.moveTo(PAD, 90); ctx.lineTo(W - PAD, 90);
-  ctx.lineWidth = 1; ctx.strokeStyle = COLORS.line; ctx.stroke();
-  await drawHeader(ctx, COLORS, guildOrId, W);
+  if (!opts.noHeader) {
+    ctx.beginPath(); ctx.moveTo(PAD, 90); ctx.lineTo(W - PAD, 90);
+    ctx.lineWidth = 1; ctx.strokeStyle = COLORS.line; ctx.stroke();
+    await drawHeader(ctx, COLORS, guildOrId, W);
+  }
   return { canvas, ctx, COLORS, W, H };
 }
 
