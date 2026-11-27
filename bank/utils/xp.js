@@ -30,8 +30,16 @@ async function afterCommand(commandName, userId, guildId, before) {
   }
   if (u.job !== before.job) {
     const salary = config?.economy?.jobs?.[u.job]?.salary;
-    return `🎉 <@${userId}> وصلت المستوى **${u.level}** وترقّيت لوظيفة **${u.job}**${salary ? ` — راتبك ${formatMoney(salary)}` : ''}`;
+    return `xp ${u.experience} • مستوى ${u.level}`;
   }
   return null;
 }
-module.exports = { snapshot, afterCommand };
+// رسالة خاصة مختصرة: xp + العدد + المستوى (تفشل بصمت إذا الخاص مقفل)
+function dmXp(ctx, xp, user, discordUser) {
+  try {
+    const target = discordUser || ctx?.author || ctx?.user;
+    if (!target || !xp) return;
+    Promise.resolve(target.send(`xp +${xp} • مستوى ${user?.level ?? 1}`)).catch(() => {});
+  } catch (e) { /* ignore */ }
+}
+module.exports = { snapshot, afterCommand, dmXp };
