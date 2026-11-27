@@ -88,7 +88,7 @@ async function handleBankCommand(message, commandName, args) {
         await command.execute(message, args);
         try {
             const promo = await xpUtil.afterCommand(commandName, message.author.id, message.guild.id, before);
-            if (promo) await message.channel.send(promo).catch(() => {});
+            if (promo) await message.author.send(promo).catch(() => {});
         } catch (e) { console.error('xp:', e.message); }
         if (command.name === 'ادارة' || command.name === 'اعداد') { try { require('./utils/backup').requestBackup(message.client, 'أمر إدارة'); } catch {} }
         return true;
@@ -129,9 +129,6 @@ async function handleBankInteraction(interaction) {
             if (c?.handleInteraction) { await c.handleInteraction(interaction); handled = true; } 
         } else if (customId.startsWith('harraj_')) { 
             const c = bankCommands.get('حراج'); 
-            if (c?.handleInteraction) { await c.handleInteraction(interaction); handled = true; } 
-        } else if (customId.startsWith('hejolah_')) { 
-            const c = bankCommands.get('هجولة'); 
             if (c?.handleInteraction) { await c.handleInteraction(interaction); handled = true; } 
         } else if (customId.startsWith('invest_')) { 
             const c = bankCommands.get('استثمار'); 
